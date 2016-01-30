@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void testVersion(View view){
         toggleSwitch = (Button) findViewById(R.id.button);
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
 
             letThereBeLight(cam, p, toggleSwitch);
@@ -90,6 +91,8 @@ public class MainActivity extends AppCompatActivity {
                     cam.setParameters(p);
                     cam.startPreview();
                     toggleSwitch.setText(R.string.button_text_off);
+                        toggleSwitch = null;
+                        p = null;
                     } catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(getBaseContext(), "Exception turning on", Toast.LENGTH_SHORT).show();
@@ -98,11 +101,11 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         if (toggleSwitch.getText() == getString(R.string.button_text_off)){
                             toggleSwitch.setText(R.string.button_text_on);
-                            p = cam.getParameters();
-                            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                            cam.setParameters(p);
+                            cam.reconnect();
                             cam.stopPreview();
                             cam.release();
+                            cam = null;
+                            toggleSwitch = null;
                         }
                     } catch (Exception e){
                         e.printStackTrace();
@@ -125,9 +128,11 @@ public class MainActivity extends AppCompatActivity {
         if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
             manager.setTorchMode(camId[0], true);
             toggleSwitch.setText(R.string.button_text_off);
+            toggleSwitch = null;
         } else if (toggleSwitch.getText() == getString(R.string.button_text_off)) {
                     manager.setTorchMode(camId[0], false);
                     toggleSwitch.setText(R.string.button_text_on);
+            toggleSwitch = null;
         }
 
     }
