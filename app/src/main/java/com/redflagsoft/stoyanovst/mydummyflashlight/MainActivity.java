@@ -2,6 +2,7 @@ package com.redflagsoft.stoyanovst.mydummyflashlight;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
@@ -64,14 +65,30 @@ public class MainActivity extends AppCompatActivity {
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         String camId[];
         Button toggleSwitch = (Button) findViewById(R.id.button);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Camera cam = Camera.open();
+            Camera.Parameters p = cam.getParameters();
+            if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
 
-       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+                p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                cam.setParameters(p);
+                cam.startPreview();
+            }
+
+            if (toggleSwitch.getText() == getString(R.string.button_text_off)){
+                cam.stopPreview();
+                cam.release();
+            }
+        }
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
             camId = manager.getCameraIdList();
             if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     manager.setTorchMode(camId[0], true);
                     toggleSwitch.setText(R.string.button_text_off);
                 }
+
             } else if (toggleSwitch.getText() == getString(R.string.button_text_off)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     manager.setTorchMode(camId[0], false);
