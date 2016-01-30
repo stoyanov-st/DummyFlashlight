@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
                 toggleSwitch.setText(R.string.button_text_off);
             }
 
-            if (toggleSwitch.getText() == getString(R.string.button_text_off)){
+            else if (toggleSwitch.getText() == getString(R.string.button_text_off)){
                 cam.stopPreview();
                 cam.release();
                 toggleSwitch.setText(R.string.button_text_on);
