@@ -73,11 +73,14 @@ public class MainActivity extends AppCompatActivity {
                 p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                 cam.setParameters(p);
                 cam.startPreview();
+
+                toggleSwitch.setText(R.string.button_text_off);
             }
 
             if (toggleSwitch.getText() == getString(R.string.button_text_off)){
                 cam.stopPreview();
                 cam.release();
+                toggleSwitch.setText(R.string.button_text_on);
             }
         }
 
