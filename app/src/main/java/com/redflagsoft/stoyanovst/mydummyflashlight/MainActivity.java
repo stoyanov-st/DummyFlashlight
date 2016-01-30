@@ -17,6 +17,8 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
 
+
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -59,49 +61,75 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+        private Camera cam;
+        private Camera.Parameters p;
+        Button toggleSwitch;
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public void letThereBeLight(View view) throws CameraAccessException {
+    public void testVersion(View view){
+        toggleSwitch = (Button) findViewById(R.id.button);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+
+            letThereBeLight(cam, p, toggleSwitch);
+        }
+        else    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            try {
+                lightForNewAndroid(toggleSwitch);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void letThereBeLight(Camera cam, Camera.Parameters p, Button toggleSwitch) {
+
+                if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
+                    try {
+                    cam = Camera.open();
+                    p = cam.getParameters();
+                    p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                    cam.setParameters(p);
+                    cam.startPreview();
+                    toggleSwitch.setText(R.string.button_text_off);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        Toast.makeText(getBaseContext(), "Exception turning on", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    try {
+                        if (toggleSwitch.getText() == getString(R.string.button_text_off)){
+                            toggleSwitch.setText(R.string.button_text_on);
+                            p = cam.getParameters();
+                            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                            cam.setParameters(p);
+                            cam.stopPreview();
+                            cam.release();
+                        }
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        Toast.makeText(getBaseContext(), "Exception turning off", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.M)
+    public void lightForNewAndroid(Button toggleSwitch) throws CameraAccessException{
+
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         String camId[];
-        Button toggleSwitch = (Button) findViewById(R.id.button);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            Camera cam = Camera.open();
-            Camera.Parameters p = cam.getParameters();
-            if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
+        camId = manager.getCameraIdList();
 
-                p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                cam.setParameters(p);
-                cam.startPreview();
 
-                toggleSwitch.setText(R.string.button_text_off);
-            }
 
-            else if (toggleSwitch.getText() == getString(R.string.button_text_off)){
-                cam.stopPreview();
-                cam.release();
-                toggleSwitch.setText(R.string.button_text_on);
-            }
-        }
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP){
-            camId = manager.getCameraIdList();
-            if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    manager.setTorchMode(camId[0], true);
-                    toggleSwitch.setText(R.string.button_text_off);
-                }
-
-            } else if (toggleSwitch.getText() == getString(R.string.button_text_off)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
+            manager.setTorchMode(camId[0], true);
+            toggleSwitch.setText(R.string.button_text_off);
+        } else if (toggleSwitch.getText() == getString(R.string.button_text_off)) {
                     manager.setTorchMode(camId[0], false);
                     toggleSwitch.setText(R.string.button_text_on);
-                }
-
-
-            }
-
         }
+
     }
 
     public void forDummies(){
