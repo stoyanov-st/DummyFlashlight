@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
     }
 
     @Override
@@ -60,17 +59,15 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
-        private Camera cam;
-        private Camera.Parameters p;
-        Button toggleSwitch;
+    Camera cam;
 
     public void testVersion(View view){
-        toggleSwitch = (Button) findViewById(R.id.button);
+       Button toggleSwitch = (Button) findViewById(R.id.button);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
-
-            letThereBeLight(cam, p, toggleSwitch);
+            cam = Camera.open();
+            Camera.Parameters p;
+            letThereBeLight(cam, toggleSwitch);
         }
         else    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             try {
@@ -81,18 +78,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void letThereBeLight(Camera cam, Camera.Parameters p, Button toggleSwitch) {
+    public void letThereBeLight(Camera cam, Button toggleSwitch) {
 
                 if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
                     try {
-                    cam = Camera.open();
-                    p = cam.getParameters();
+                    Camera.Parameters p = cam.getParameters();
                     p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                     cam.setParameters(p);
                     cam.startPreview();
                     toggleSwitch.setText(R.string.button_text_off);
-                        toggleSwitch = null;
-                        p = null;
                     } catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(getBaseContext(), "Exception turning on", Toast.LENGTH_SHORT).show();
@@ -101,11 +95,11 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         if (toggleSwitch.getText() == getString(R.string.button_text_off)){
                             toggleSwitch.setText(R.string.button_text_on);
-                            cam.reconnect();
+                            Camera.Parameters p = cam.getParameters();
+                            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                            cam.setParameters(p);
+                            cam.startPreview();
                             cam.stopPreview();
-                            cam.release();
-                            cam = null;
-                            toggleSwitch = null;
                         }
                     } catch (Exception e){
                         e.printStackTrace();
@@ -123,21 +117,48 @@ public class MainActivity extends AppCompatActivity {
         String camId[];
         camId = manager.getCameraIdList();
 
-
-
         if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
             manager.setTorchMode(camId[0], true);
             toggleSwitch.setText(R.string.button_text_off);
-            toggleSwitch = null;
         } else if (toggleSwitch.getText() == getString(R.string.button_text_off)) {
                     manager.setTorchMode(camId[0], false);
                     toggleSwitch.setText(R.string.button_text_on);
-            toggleSwitch = null;
         }
-
     }
 
     public void forDummies(){
         Toast.makeText(MainActivity.this, "Access Denied!", Toast.LENGTH_LONG).show();
     }
+
+    @Override
+    protected void onDestroy() {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            if (cam != null) {
+                cam.release();
+            }
+        }
+            super.onDestroy();
+
+    }
+
+    @Override
+    protected void onPause(){
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            if (cam != null) {
+                cam.release();
+            }
+        }
+            super.onPause();
+    }
+
+    @Override
+    protected void onResume(){
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
+            if (cam == null) {
+                cam = Camera.open();
+            }
+        }
+            super.onResume();
+    }
+
 }
