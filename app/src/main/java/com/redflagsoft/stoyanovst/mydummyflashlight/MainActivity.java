@@ -17,8 +17,6 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.Toast;
 
-
-
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -36,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
-
     }
 
     @Override
@@ -56,18 +53,18 @@ public class MainActivity extends AppCompatActivity {
             forDummies();
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
-    Camera cam;
+
+    Camera cam  = Camera.open();
+    Camera.Parameters p = cam.getParameters();
 
     public void testVersion(View view){
-       Button toggleSwitch = (Button) findViewById(R.id.button);
+
+        Button toggleSwitch = (Button) findViewById(R.id.button);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
-            cam = Camera.open();
-            Camera.Parameters p;
-            letThereBeLight(cam, toggleSwitch);
+            letThereBeLight(cam, toggleSwitch, p);
         }
         else    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
             try {
@@ -78,36 +75,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void letThereBeLight(Camera cam, Button toggleSwitch) {
+    public void letThereBeLight(Camera cam, Button toggleSwitch, Camera.Parameters p) {
 
                 if (toggleSwitch.getText() == getString(R.string.button_text_on)) {
                     try {
-                    Camera.Parameters p = cam.getParameters();
-                    p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                    cam.setParameters(p);
-                    cam.startPreview();
-                    toggleSwitch.setText(R.string.button_text_off);
+                        p = cam.getParameters();
+                        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                        cam.setParameters(p);
+                        cam.startPreview();
+                        toggleSwitch.setText(R.string.button_text_off);
                     } catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(getBaseContext(), "Exception turning on", Toast.LENGTH_SHORT).show();
                     }
-                } else {
+                } else if (toggleSwitch.getText() == getString(R.string.button_text_off)){
                     try {
-                        if (toggleSwitch.getText() == getString(R.string.button_text_off)){
-                            toggleSwitch.setText(R.string.button_text_on);
-                            Camera.Parameters p = cam.getParameters();
-                            p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                            cam.setParameters(p);
-                            cam.startPreview();
-                            cam.stopPreview();
-                        }
+                        toggleSwitch.setText(R.string.button_text_on);
+                        p = cam.getParameters();
+                        p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        cam.setParameters(p);
+                        cam.stopPreview();
+
                     } catch (Exception e){
                         e.printStackTrace();
                         Toast.makeText(getBaseContext(), "Exception turning off", Toast.LENGTH_SHORT).show();
                     }
-
                 }
-
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -136,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
             if (cam != null) {
                 cam.release();
             }
+            if (p != null){
+                p = null;
+            }
         }
             super.onDestroy();
 
@@ -147,18 +143,24 @@ public class MainActivity extends AppCompatActivity {
             if (cam != null) {
                 cam.release();
             }
+            if (p != null){
+               p = null;
+            }
         }
             super.onPause();
     }
 
     @Override
     protected void onResume(){
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP) {
-            if (cam == null) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP){
+            if (p == null){
                 cam = Camera.open();
+                p = cam.getParameters();
+                Button toggleSwitch = (Button) findViewById(R.id.button);
+                toggleSwitch.setText(R.string.button_text_on);
             }
         }
-            super.onResume();
+        super.onResume();
     }
 
 }
