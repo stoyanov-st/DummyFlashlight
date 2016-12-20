@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
     <solid
-        android:color="#FF0000"
+        android:color="@color/colorRed"
         />
     <padding
         android:left="0dp"
@@ -15,5 +15,5 @@
         />
     <stroke
         android:width="15dp"
-        android:color="#875742"/>
+        android:color="@color/colorButtonStroke"/>
 </shape>
