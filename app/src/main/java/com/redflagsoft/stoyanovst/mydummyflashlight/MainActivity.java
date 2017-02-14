@@ -26,8 +26,8 @@ public class MainActivity extends AppCompatActivity {
     private Button toggleSwitch;
     private Camera cam;
     private Camera.Parameters p;
-    private Handler handler;
-    private Runnable runnable;
+    private boolean isItTurned = false;
+
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,14 +49,7 @@ public class MainActivity extends AppCompatActivity {
         toggleSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handler = new Handler(Looper.getMainLooper());
-                runnable = new Runnable(){
-                    @Override
-                    public void run(){
                         letThereBeLight();
-                    }
-                };
-                handler.post(runnable);
             }
         });
     }
@@ -75,71 +68,78 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            handler = new Handler(Looper.getMainLooper());
-            runnable = new Runnable() {
+
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
                     forDummies();
                 }
-            };
-            handler.post(runnable);
+            }).start();
 
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    boolean isItTurned = false;
+    public void changeLabel(int buttonLabel){
+       toggleSwitch.setText(buttonLabel);
+    }
 
-    public void changeLabel(){
-        if(isItTurned){
-            toggleSwitch.setText(R.string.button_text_off);
-        }
-        else toggleSwitch.setText(R.string.button_text_on);
+    public void letThereBeLight() {
+                    if(!isItTurned){
+                        new Thread( new Runnable() {
+                            @Override
+                            public void run() {
+                                turnFlashOn();
+                            }
+                        }).start();
+                        changeLabel(R.string.button_text_off);
+                    }
+                    else {
+                        new Thread(new Runnable() {
+                            @Override
+                            @SuppressWarnings("deprecation")
+                            public void run() {
+                                try {
+                                    turnFlashOff();
+
+                                } catch (IOException e) {
+                                    cam.release();
+                                    cam = Camera.open();
+                                }
+                            }
+                        }).start();
+                        changeLabel(R.string.button_text_on);
+                    }
     }
 
     @SuppressWarnings("deprecation")
-    public void letThereBeLight() {
-
-        runnable = new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-
-                    if (!isItTurned) {
-                        cam = Camera.open();
-                        p = cam.getParameters();
-                        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                        cam.setParameters(p);
-                        cam.startPreview();
-                        isItTurned = !isItTurned;
-                    } else {
-                        cam.reconnect();
-                        p = cam.getParameters();
-                        p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        cam.setParameters(p);
-                        cam.stopPreview();
-                        cam.release();
-                        isItTurned = !isItTurned;
-                    }
-                }
-
-                catch(IOException e) {
-                    cam.release();
-                    cam = Camera.open();
-                }
-                finally {
-                    changeLabel();
-                }
-            }
-
-        };
-        handler.post(runnable);
+    public void turnFlashOn(){
+        isItTurned = true;
+        cam = Camera.open();
+        p = cam.getParameters();
+        p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        cam.setParameters(p);
+        cam.startPreview();
 
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
+    @SuppressWarnings("deprecation")
+    public void turnFlashOff() throws IOException{
+
+        isItTurned = false;
+        cam.reconnect();
+        p = cam.getParameters();
+        p.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+        cam.setParameters(p);
+        cam.stopPreview();
+        cam.release();
+
+
+    }
+
+
+   /* @TargetApi(Build.VERSION_CODES.M)
     public void lightForNewAndroid(Button toggleSwitch) throws CameraAccessException{
 
         CameraManager manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
@@ -153,16 +153,14 @@ public class MainActivity extends AppCompatActivity {
                     manager.setTorchMode(camId[0], false);
                     toggleSwitch.setText(R.string.button_text_on);
         }
-    }
+    }*/
 
     public void forDummies(){
-        handler = new Handler(Looper.getMainLooper());
-        runnable = new Runnable() {
+        new Thread( new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(MainActivity.this, "Access Denied!", Toast.LENGTH_LONG).show();
             }
-        };
-        handler.post(runnable);
+        }).start();
     }
 }
